@@ -1,0 +1,57 @@
+name: modern_ts
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python==3.9
+  - plotly
+  - py-xgboost
+  - scikit-learn>=0.21.2
+  - pandas
+  - catboost
+  - lightgbm
+  - category_encoders
+  - pmdarima>=1.8.0
+  - ipywidgets[version='>=7.6']
+  - jupyterlab[version='>=3']
+  - black
+  - isort
+  - xlrd
+  - lxml
+  - openpyxl
+  - python-kaleido==0.1.0
+  - pyarrow
+  - numpy
+  - scipy
+  - tqdm
+  - matplotlib
+  - humanize
+  - optuna
+  - pytorch-forecasting
+  - numba
+  - holidays
+  - seaborn
+  - statsmodels
+  - statsforecast==0.6.0
+  - u8darts<=0.19.0
+  - pytorch::pytorch
+  - pytorch::torchvision
+  - pytorch::torchaudio
+  - pytorch-lightning
+  #- pytorch::cudatoolkit==10.2
+  - pip
+  - pip:
+    - kaggle>=1.5.2
+    - missingno>=0.5.0
+    - window_ops
+    - pymannkendall
+    # - fancyimpute
+    - tsfel
+    - rich
+    - git+https://github.com/manujosephv/pytorch_tabular.git@modern_ts_freeze #specifying a commit that is working because of pandas depencency
+    # - git+https://github.com/TimeSynth/TimeSynth.git
+    - omegaconf==2.1.2
+    - tensor-sensor[torch]
+    - jupyterlab-code-formatter>=1.4.10
+    - aquirdturtle_collapsible_headings>=3.1.0
