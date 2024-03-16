@@ -10,6 +10,8 @@ import statsmodels.api as sm
 from pandas.core.nanops import nanmean as pd_nanmean
 from plotly.subplots import make_subplots
 from sklearn.linear_model import RidgeCV
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 from statsmodels.tools.data import _is_using_pandas
 from statsmodels.tsa.seasonal import DecomposeResult
 
@@ -448,9 +450,11 @@ class FourierDecomposition(BaseDecomposition):
     def _extract_seasonality(self, detrended, **seasonality_kwargs):
         """Extracts Seasonality from detrended data using fourier terms"""
         X = self._prepare_X(detrended, **seasonality_kwargs)
-        self.seasonality_model = RidgeCV(normalize=True, fit_intercept=False).fit(
-            X, detrended
-        )
+    # Create a pipeline that first standardizes the data and then fits the RidgeCV model
+        self.seasonality_model = Pipeline([
+            ('scaler', StandardScaler()),  # Standardize features by removing the mean and scaling to unit variance
+            ('ridge_cv', RidgeCV(fit_intercept=False))  # Fit the RidgeCV model
+        ]).fit(X, detrended)
         return self.seasonality_model.predict(X)
 
 
