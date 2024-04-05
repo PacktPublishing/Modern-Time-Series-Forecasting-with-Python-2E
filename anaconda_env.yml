@@ -47,6 +47,7 @@ dependencies:
     - pymannkendall
     - fancyimpute
     - tsfel
+    - plotly-resampler
     - rich
     - pytorch_tabular # for full features pytorch_tabular[extra]
     - omegaconf
