@@ -49,6 +49,7 @@ dependencies:
     - tsfel
     - plotly-resampler
     - rich
+    - kaleido
     - pytorch_tabular # for full features pytorch_tabular[extra]
     - omegaconf
     - tensor-sensor[torch]
