@@ -32,7 +32,7 @@ dependencies:
   - numba
   - holidays
   - seaborn
-  - statsmodels
+  - statsmodels=1.7.3 # Currently bug in 1.7.4.  Can update to newest version if bug is fixed.
   - statsforecast 
   - u8darts<=0.19.0
   - pytorch::pytorch
