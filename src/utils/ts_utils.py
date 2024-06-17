@@ -1,6 +1,7 @@
 import numpy as np
 from functools import partial
 from src.decomposition.seasonal import _detrend
+from typing import Callable, Dict, List
 
 def make_stationary(x: np.ndarray, method: str="detrend", detrend_kwargs:dict={}):
     """Utility to make time series stationary
@@ -25,10 +26,13 @@ def make_stationary(x: np.ndarray, method: str="detrend", detrend_kwargs:dict={}
 
 from darts import TimeSeries
 from darts.metrics.metrics import _get_values_or_raise
-from darts.metrics import metrics as dart_metrics
+#from darts.metrics import metrics as dart_metrics
+from datasetsforecast.losses import *
 from typing import Optional, Tuple, Union, Sequence, Callable, cast
 from src.utils.data_utils import is_datetime_dtypes
 import pandas as pd
+
+
 
 def _remove_nan_union(array_a: np.ndarray,
                       array_b: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -39,6 +43,50 @@ def _remove_nan_union(array_a: np.ndarray,
 
     isnan_mask = np.logical_or(np.isnan(array_a), np.isnan(array_b))
     return np.delete(array_a, isnan_mask), np.delete(array_b, isnan_mask)
+
+def _zero_to_nan(series: Union[pd.Series, "pl.Expr"]) -> Union[pd.Series, "pl.Expr"]:
+    if isinstance(series, pd.Series):
+        res = series.replace(0, np.nan)
+    else:
+        res = pl.when(series == 0).then(float("nan")).otherwise(series.abs())
+    return res
+
+def forecast_bias_NIXTLA(
+    df: pd.DataFrame,
+    models: List[str],
+    id_col: str = "unique_id",
+    target_col: str = "y",
+) -> Union[float, np.ndarray]:
+    """Forecast Bias (FB)
+
+    Forecast bias measures the percentage of over or under forecasting by the model.
+    If the bias is negative, it means the model is underforecasting, meaning the 
+    forecast is less than actuals. If the bias is positive, it means the model 
+    is overforecasting, meaning the forecast is greater than the actuals."""
+
+    # Select only the necessary columns before grouping
+    columns_to_sum = models + [target_col, id_col]
+    temp_df = df[columns_to_sum]
+
+    # Group the data by 'id_col' and sum the required columns
+    temp = temp_df.groupby(id_col, observed=True).sum()
+
+    # Calculate the forecast bias
+    res = (
+        temp[models]
+        .sub(temp[target_col], axis=0)  # Subtract the target column from the models predictions
+        .div(_zero_to_nan(temp[target_col].abs()), axis=0)  # Normalize by the absolute values of the target column
+        .fillna(0)*100  # Fill NA with zero
+    )
+
+    # Set the index name and reset the index to make 'id_col' a column again
+    res.index.name = id_col
+    res = res.reset_index()
+
+    return res
+
+
+
 
 def forecast_bias(actual_series: Union[TimeSeries, Sequence[TimeSeries], np.ndarray],
         pred_series: Union[TimeSeries, Sequence[TimeSeries], np.ndarray],
@@ -153,9 +201,12 @@ def darts_metrics_adapter(metric_func, actual_series: Union[TimeSeries, Sequence
     else:
         raise ValueError()
     if metric_func.__name__ == "mase":
-        return metric_func(actual_series=actual_series, pred_series=pred_series, insample=insample, m=m, intersect=intersect, reduction=reduction, inter_reduction=inter_reduction, n_jobs=n_jobs, verbose=verbose)
+        #return metric_func(actual_series=actual_series, pred_series=pred_series, insample=insample, m=m, intersect=intersect, reduction=reduction, inter_reduction=inter_reduction, n_jobs=n_jobs, verbose=verbose)
+        return metric_func(actual_series, pred_series, insample)
+
     else:
-        return metric_func(actual_series=actual_series, pred_series=pred_series, intersect=intersect, reduction=reduction, inter_reduction=inter_reduction, n_jobs=n_jobs, verbose=verbose)
+        #return metric_func(actual_series=actual_series, pred_series=pred_series, intersect=intersect, reduction=reduction, inter_reduction=inter_reduction, n_jobs=n_jobs, verbose=verbose)
+        return metric_func(actual_series, pred_series)
 
 def mae(actuals, predictions):
     return np.nanmean(np.abs(actuals-predictions))
@@ -215,9 +266,11 @@ def rmsse(
 
         return reduction(value_list)
 
-    if isinstance(actual_series, TimeSeries):
-        assert isinstance(pred_series, TimeSeries), "Expecting pred_series to be TimeSeries"
-        assert isinstance(insample, TimeSeries), "Expecting insample to be TimeSeries"
+    if isinstance(actual_series
+                  #, TimeSeries
+                  ):
+        #assert isinstance(pred_series, TimeSeries), "Expecting pred_series to be TimeSeries"
+        #assert isinstance(insample, TimeSeries), "Expecting insample to be TimeSeries"
         return _multivariate_mase(
             actual_series=actual_series,
             pred_series=pred_series,
