@@ -24,8 +24,8 @@ def make_stationary(x: np.ndarray, method: str="detrend", detrend_kwargs:dict={}
             return _x*x[1:]
         return stationary, partial(inverse_transform, x=x)
 
-from darts import TimeSeries
-from darts.metrics.metrics import _get_values_or_raise
+#from darts import TimeSeries
+#from darts.metrics.metrics import _get_values_or_raise
 #from darts.metrics import metrics as dart_metrics
 from datasetsforecast.losses import *
 from typing import Optional, Tuple, Union, Sequence, Callable, cast
@@ -85,11 +85,114 @@ def forecast_bias_NIXTLA(
 
     return res
 
+# recreated DARTS function to remove dependency
+def _get_values_or_raise(
+    series_a: np.ndarray,
+    series_b: np.ndarray,
+    intersect: bool,
+    stochastic_quantile: Optional[float] = 0.5,
+    remove_nan_union: bool = False,
+    is_insample: bool = False,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Returns the processed numpy values of two time series. Processing can be customized with arguments
+    `intersect, stochastic_quantile, remove_nan_union`.
+
+    Parameters
+    ----------
+    series_a
+        A deterministic ``TimeSeries`` instance. If `is_insample=False`, it is the `actual_series`.
+        Otherwise, it is the `insample` series.
+    series_b
+        A deterministic or stochastic ``TimeSeries`` instance (the predictions `pred_series`).
+    intersect
+        A boolean for whether to only consider the time intersection between `series_a` and `series_b`
+    stochastic_quantile
+        Optionally, for stochastic predicted series, return either all sample values with (`stochastic_quantile=None`)
+        or any deterministic quantile sample values by setting `stochastic_quantile=quantile` {>=0,<=1}.
+    remove_nan_union
+        By setting `remove_non_union` to True, sets all values from `series_a` and `series_b` to `np.nan` at indices
+        where any of the two series contain a NaN value. Only effective when `is_insample=False`.
+    is_insample
+        Whether `series_a` corresponds to the `insample` series for scaled metrics.
+
+    Raises
+    ------
+    ValueError
+        If `is_insample=False` and the two time series do not have at least a partially overlapping time index.
+    """
+
+    if not series_a.width == series_b.width:
+        raise_log(
+            ValueError("The two time series must have the same number of components"),
+            logger=logger,
+        )
+
+    if not isinstance(intersect, bool):
+        raise_log(ValueError("The intersect parameter must be a bool"), logger=logger)
+
+    make_copy = False
+    if not is_insample:
+        # get the time intersection and values of the two series (corresponds to `actual_series` and `pred_series`
+        if series_a.has_same_time_as(series_b) or not intersect:
+            vals_a_common = series_a.all_values(copy=make_copy)
+            vals_b_common = series_b.all_values(copy=make_copy)
+        else:
+            vals_a_common = series_a.slice_intersect_values(series_b, copy=make_copy)
+            vals_b_common = series_b.slice_intersect_values(series_a, copy=make_copy)
+
+        if not len(vals_a_common) == len(vals_b_common):
+            raise_log(
+                ValueError(
+                    "The two time series must have at least a partially overlapping time index."
+                ),
+                logger=logger,
+            )
+
+        vals_b_det = _get_values(vals_b_common, stochastic_quantile=stochastic_quantile)
+    else:
+        # for `insample` series we extract only values up until before start of `pred_series`
+        # find how many steps `insample` overlaps into `series_b`
+        end = (
+            n_steps_between(
+                end=series_b.start_time(), start=series_a.end_time(), freq=series_a.freq
+            )
+            - 1
+        )
+        if end > 0 or abs(end) >= len(series_a):
+            raise_log(
+                ValueError(
+                    "The `insample` series must start before the `pred_series` and "
+                    "extend at least until one time step before the start of `pred_series`."
+                ),
+                logger=logger,
+            )
+        end = end or None
+        vals_a_common = series_a.all_values(copy=make_copy)[:end]
+        vals_b_det = None
+    vals_a_det = _get_values(vals_a_common, stochastic_quantile=stochastic_quantile)
+
+    if not remove_nan_union or is_insample:
+        return vals_a_det, vals_b_det
+
+    b_is_deterministic = bool(len(vals_b_det.shape) == 2)
+    if b_is_deterministic:
+        isnan_mask = np.logical_or(np.isnan(vals_a_det), np.isnan(vals_b_det))
+        isnan_mask_pred = isnan_mask
+    else:
+        isnan_mask = np.logical_or(
+            np.isnan(vals_a_det), np.isnan(vals_b_det).any(axis=2)
+        )
+        isnan_mask_pred = np.repeat(
+            np.expand_dims(isnan_mask, axis=-1), vals_b_det.shape[2], axis=2
+        )
+    return np.where(isnan_mask, np.nan, vals_a_det), np.where(
+        isnan_mask_pred, np.nan, vals_b_det
+    )
 
 
 
-def forecast_bias(actual_series: Union[TimeSeries, Sequence[TimeSeries], np.ndarray],
-        pred_series: Union[TimeSeries, Sequence[TimeSeries], np.ndarray],
+def forecast_bias(actual_series: Union[ np.ndarray],
+        pred_series: Union[ np.ndarray],
         intersect: bool = True,
         *,
         reduction: Callable[[np.ndarray], float] = np.mean,
@@ -160,53 +263,53 @@ def cast_to_series(df):
             raise ValueError("Dataframes with more than one columns cannot be converted to pd.Series")
     return df
 
-def darts_metrics_adapter(metric_func, actual_series: Union[TimeSeries, Sequence[TimeSeries]],
-        pred_series: Union[TimeSeries, Sequence[TimeSeries]],
-        insample: Union[TimeSeries, Sequence[TimeSeries]] = None,
-        m: Optional[int] = 1,
-        intersect: bool = True,
-        reduction: Callable[[np.ndarray], float] = np.mean,
-        inter_reduction: Callable[[np.ndarray], Union[float, np.ndarray]] = lambda x: x,
-        n_jobs: int = 1,
-        verbose: bool = False):
+# def darts_metrics_adapter(metric_func, actual_series: Union[TimeSeries, Sequence[TimeSeries]],
+#         pred_series: Union[TimeSeries, Sequence[TimeSeries]],
+#         insample: Union[TimeSeries, Sequence[TimeSeries]] = None,
+#         m: Optional[int] = 1,
+#         intersect: bool = True,
+#         reduction: Callable[[np.ndarray], float] = np.mean,
+#         inter_reduction: Callable[[np.ndarray], Union[float, np.ndarray]] = lambda x: x,
+#         n_jobs: int = 1,
+#         verbose: bool = False):
     
-    actual_series, pred_series = cast_to_series(actual_series), cast_to_series(pred_series)
-    if insample is not None:
-        insample = cast_to_series(insample)
-    assert type(actual_series) is type(pred_series), f"actual_series({type(actual_series)}) and pred_series({type(pred_series)}) should be of same type."
-    if insample is not None:
-        assert type(actual_series) is type(insample), "actual_series and insample should be of same type."
-    is_nd_array = isinstance(actual_series, np.ndarray)
-    is_pd_series = isinstance(actual_series, pd.Series)
+#     actual_series, pred_series = cast_to_series(actual_series), cast_to_series(pred_series)
+#     if insample is not None:
+#         insample = cast_to_series(insample)
+#     assert type(actual_series) is type(pred_series), f"actual_series({type(actual_series)}) and pred_series({type(pred_series)}) should be of same type."
+#     if insample is not None:
+#         assert type(actual_series) is type(insample), "actual_series and insample should be of same type."
+#     is_nd_array = isinstance(actual_series, np.ndarray)
+#     is_pd_series = isinstance(actual_series, pd.Series)
     
-    if is_pd_series:
-        is_datetime_index = is_datetime_dtypes(actual_series.index) and is_datetime_dtypes(pred_series.index)
-        if insample is not None:
-            is_datetime_index = is_datetime_index and is_datetime_dtypes(insample.index)
-    else:
-        is_datetime_index = False
-    if metric_func.__name__ == "mase":
-        if not is_datetime_index:
-            raise ValueError("MASE needs pandas Series with datetime index as inputs")
+#     if is_pd_series:
+#         is_datetime_index = is_datetime_dtypes(actual_series.index) and is_datetime_dtypes(pred_series.index)
+#         if insample is not None:
+#             is_datetime_index = is_datetime_index and is_datetime_dtypes(insample.index)
+#     else:
+#         is_datetime_index = False
+#     if metric_func.__name__ == "mase":
+#         if not is_datetime_index:
+#             raise ValueError("MASE needs pandas Series with datetime index as inputs")
     
-    if is_nd_array or (is_pd_series and not is_datetime_index):
-        actual_series, pred_series = TimeSeries.from_values(actual_series.values if is_pd_series else actual_series), TimeSeries.from_values(pred_series.values if is_pd_series else pred_series)
-        if insample is not None:
-            insample = TimeSeries.from_values(insample.values if is_pd_series else insample)
+#     if is_nd_array or (is_pd_series and not is_datetime_index):
+#         actual_series, pred_series = TimeSeries.from_values(actual_series.values if is_pd_series else actual_series), TimeSeries.from_values(pred_series.values if is_pd_series else pred_series)
+#         if insample is not None:
+#             insample = TimeSeries.from_values(insample.values if is_pd_series else insample)
 
-    elif is_pd_series and is_datetime_index:
-        actual_series, pred_series = TimeSeries.from_series(actual_series), TimeSeries.from_series(pred_series)
-        if insample is not None:
-            insample = TimeSeries.from_series(insample)
-    else:
-        raise ValueError()
-    if metric_func.__name__ == "mase":
-        #return metric_func(actual_series=actual_series, pred_series=pred_series, insample=insample, m=m, intersect=intersect, reduction=reduction, inter_reduction=inter_reduction, n_jobs=n_jobs, verbose=verbose)
-        return metric_func(actual_series, pred_series, insample)
+#     elif is_pd_series and is_datetime_index:
+#         actual_series, pred_series = TimeSeries.from_series(actual_series), TimeSeries.from_series(pred_series)
+#         if insample is not None:
+#             insample = TimeSeries.from_series(insample)
+#     else:
+#         raise ValueError()
+#     if metric_func.__name__ == "mase":
+#         #return metric_func(actual_series=actual_series, pred_series=pred_series, insample=insample, m=m, intersect=intersect, reduction=reduction, inter_reduction=inter_reduction, n_jobs=n_jobs, verbose=verbose)
+#         return metric_func(actual_series, pred_series, insample)
 
-    else:
-        #return metric_func(actual_series=actual_series, pred_series=pred_series, intersect=intersect, reduction=reduction, inter_reduction=inter_reduction, n_jobs=n_jobs, verbose=verbose)
-        return metric_func(actual_series, pred_series)
+#     else:
+#         #return metric_func(actual_series=actual_series, pred_series=pred_series, intersect=intersect, reduction=reduction, inter_reduction=inter_reduction, n_jobs=n_jobs, verbose=verbose)
+#         return metric_func(actual_series, pred_series)
 
 def mae(actuals, predictions):
     return np.nanmean(np.abs(actuals-predictions))
