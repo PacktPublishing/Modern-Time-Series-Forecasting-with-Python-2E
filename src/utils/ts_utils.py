@@ -85,6 +85,109 @@ def forecast_bias_NIXTLA(
 
     return res
 
+# recreated DARTS function to remove dependency
+def _get_values_or_raise(
+    series_a: np.ndarray,
+    series_b: np.ndarray,
+    intersect: bool,
+    stochastic_quantile: Optional[float] = 0.5,
+    remove_nan_union: bool = False,
+    is_insample: bool = False,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Returns the processed numpy values of two time series. Processing can be customized with arguments
+    `intersect, stochastic_quantile, remove_nan_union`.
+
+    Parameters
+    ----------
+    series_a
+        A deterministic ``TimeSeries`` instance. If `is_insample=False`, it is the `actual_series`.
+        Otherwise, it is the `insample` series.
+    series_b
+        A deterministic or stochastic ``TimeSeries`` instance (the predictions `pred_series`).
+    intersect
+        A boolean for whether to only consider the time intersection between `series_a` and `series_b`
+    stochastic_quantile
+        Optionally, for stochastic predicted series, return either all sample values with (`stochastic_quantile=None`)
+        or any deterministic quantile sample values by setting `stochastic_quantile=quantile` {>=0,<=1}.
+    remove_nan_union
+        By setting `remove_non_union` to True, sets all values from `series_a` and `series_b` to `np.nan` at indices
+        where any of the two series contain a NaN value. Only effective when `is_insample=False`.
+    is_insample
+        Whether `series_a` corresponds to the `insample` series for scaled metrics.
+
+    Raises
+    ------
+    ValueError
+        If `is_insample=False` and the two time series do not have at least a partially overlapping time index.
+    """
+
+    if not series_a.width == series_b.width:
+        raise_log(
+            ValueError("The two time series must have the same number of components"),
+            logger=logger,
+        )
+
+    if not isinstance(intersect, bool):
+        raise_log(ValueError("The intersect parameter must be a bool"), logger=logger)
+
+    make_copy = False
+    if not is_insample:
+        # get the time intersection and values of the two series (corresponds to `actual_series` and `pred_series`
+        if series_a.has_same_time_as(series_b) or not intersect:
+            vals_a_common = series_a.all_values(copy=make_copy)
+            vals_b_common = series_b.all_values(copy=make_copy)
+        else:
+            vals_a_common = series_a.slice_intersect_values(series_b, copy=make_copy)
+            vals_b_common = series_b.slice_intersect_values(series_a, copy=make_copy)
+
+        if not len(vals_a_common) == len(vals_b_common):
+            raise_log(
+                ValueError(
+                    "The two time series must have at least a partially overlapping time index."
+                ),
+                logger=logger,
+            )
+
+        vals_b_det = _get_values(vals_b_common, stochastic_quantile=stochastic_quantile)
+    else:
+        # for `insample` series we extract only values up until before start of `pred_series`
+        # find how many steps `insample` overlaps into `series_b`
+        end = (
+            n_steps_between(
+                end=series_b.start_time(), start=series_a.end_time(), freq=series_a.freq
+            )
+            - 1
+        )
+        if end > 0 or abs(end) >= len(series_a):
+            raise_log(
+                ValueError(
+                    "The `insample` series must start before the `pred_series` and "
+                    "extend at least until one time step before the start of `pred_series`."
+                ),
+                logger=logger,
+            )
+        end = end or None
+        vals_a_common = series_a.all_values(copy=make_copy)[:end]
+        vals_b_det = None
+    vals_a_det = _get_values(vals_a_common, stochastic_quantile=stochastic_quantile)
+
+    if not remove_nan_union or is_insample:
+        return vals_a_det, vals_b_det
+
+    b_is_deterministic = bool(len(vals_b_det.shape) == 2)
+    if b_is_deterministic:
+        isnan_mask = np.logical_or(np.isnan(vals_a_det), np.isnan(vals_b_det))
+        isnan_mask_pred = isnan_mask
+    else:
+        isnan_mask = np.logical_or(
+            np.isnan(vals_a_det), np.isnan(vals_b_det).any(axis=2)
+        )
+        isnan_mask_pred = np.repeat(
+            np.expand_dims(isnan_mask, axis=-1), vals_b_det.shape[2], axis=2
+        )
+    return np.where(isnan_mask, np.nan, vals_a_det), np.where(
+        isnan_mask_pred, np.nan, vals_b_det
+    )
 
 
 
