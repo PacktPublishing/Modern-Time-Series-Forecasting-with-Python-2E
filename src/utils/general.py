@@ -8,9 +8,6 @@ import torch
 try:  # for 1.8
     from pytorch_lightning.utilities.cloud_io import get_filesystem
 except ImportError:  # for 1.9
-    from pytorch_lightning.core.saving import get_filesystemtry:  # for 1.8
-    from pytorch_lightning.utilities.cloud_io import get_filesystem
-except ImportError:  # for 1.9
     from pytorch_lightning.core.saving import get_filesystem
 
 _PATH = Union[str, Path]
