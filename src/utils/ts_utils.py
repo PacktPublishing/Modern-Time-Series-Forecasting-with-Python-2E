@@ -263,6 +263,18 @@ def cast_to_series(df):
             raise ValueError("Dataframes with more than one columns cannot be converted to pd.Series")
     return df
 
+def darts_metrics_adapter(metric_func, actual_series,
+        pred_series,
+        insample = None,
+        m: Optional[int] = 1,
+        intersect: bool = True,
+        reduction: Callable[[np.ndarray], float] = np.mean,
+        inter_reduction: Callable[[np.ndarray], Union[float, np.ndarray]] = lambda x: x,
+        n_jobs: int = 1,
+        verbose: bool = False):
+    pass
+
+
 # def darts_metrics_adapter(metric_func, actual_series: Union[TimeSeries, Sequence[TimeSeries]],
 #         pred_series: Union[TimeSeries, Sequence[TimeSeries]],
 #         insample: Union[TimeSeries, Sequence[TimeSeries]] = None,
