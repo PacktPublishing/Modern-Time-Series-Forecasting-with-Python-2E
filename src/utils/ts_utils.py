@@ -86,109 +86,23 @@ def forecast_bias_NIXTLA(
     return res
 
 # recreated DARTS function to remove dependency
-def _get_values_or_raise(
-    series_a: np.ndarray,
-    series_b: np.ndarray,
-    intersect: bool,
-    stochastic_quantile: Optional[float] = 0.5,
-    remove_nan_union: bool = False,
-    is_insample: bool = False,
-) -> Tuple[np.ndarray, np.ndarray]:
-    """Returns the processed numpy values of two time series. Processing can be customized with arguments
-    `intersect, stochastic_quantile, remove_nan_union`.
 
-    Parameters
-    ----------
-    series_a
-        A deterministic ``TimeSeries`` instance. If `is_insample=False`, it is the `actual_series`.
-        Otherwise, it is the `insample` series.
-    series_b
-        A deterministic or stochastic ``TimeSeries`` instance (the predictions `pred_series`).
-    intersect
-        A boolean for whether to only consider the time intersection between `series_a` and `series_b`
-    stochastic_quantile
-        Optionally, for stochastic predicted series, return either all sample values with (`stochastic_quantile=None`)
-        or any deterministic quantile sample values by setting `stochastic_quantile=quantile` {>=0,<=1}.
-    remove_nan_union
-        By setting `remove_non_union` to True, sets all values from `series_a` and `series_b` to `np.nan` at indices
-        where any of the two series contain a NaN value. Only effective when `is_insample=False`.
-    is_insample
-        Whether `series_a` corresponds to the `insample` series for scaled metrics.
-
-    Raises
-    ------
-    ValueError
-        If `is_insample=False` and the two time series do not have at least a partially overlapping time index.
+def _get_values(
+    vals: np.ndarray, stochastic_quantile: Optional[float] = 0.5
+) -> np.ndarray:
     """
-
-    if not series_a.width == series_b.width:
-        raise_log(
-            ValueError("The two time series must have the same number of components"),
-            logger=logger,
-        )
-
-    if not isinstance(intersect, bool):
-        raise_log(ValueError("The intersect parameter must be a bool"), logger=logger)
-
-    make_copy = False
-    if not is_insample:
-        # get the time intersection and values of the two series (corresponds to `actual_series` and `pred_series`
-        if series_a.has_same_time_as(series_b) or not intersect:
-            vals_a_common = series_a.all_values(copy=make_copy)
-            vals_b_common = series_b.all_values(copy=make_copy)
+    Returns a deterministic or probabilistic numpy array from the values of a time series.
+    For stochastic input values, return either all sample values with (stochastic_quantile=None) or the quantile sample
+    value with (stochastic_quantile {>=0,<=1})
+    """
+    if vals.shape[2] == 1:  # deterministic
+        out = vals[:, :, 0]
+    else:  # stochastic
+        if stochastic_quantile is None:
+            out = vals
         else:
-            vals_a_common = series_a.slice_intersect_values(series_b, copy=make_copy)
-            vals_b_common = series_b.slice_intersect_values(series_a, copy=make_copy)
-
-        if not len(vals_a_common) == len(vals_b_common):
-            raise_log(
-                ValueError(
-                    "The two time series must have at least a partially overlapping time index."
-                ),
-                logger=logger,
-            )
-
-        vals_b_det = _get_values(vals_b_common, stochastic_quantile=stochastic_quantile)
-    else:
-        # for `insample` series we extract only values up until before start of `pred_series`
-        # find how many steps `insample` overlaps into `series_b`
-        end = (
-            n_steps_between(
-                end=series_b.start_time(), start=series_a.end_time(), freq=series_a.freq
-            )
-            - 1
-        )
-        if end > 0 or abs(end) >= len(series_a):
-            raise_log(
-                ValueError(
-                    "The `insample` series must start before the `pred_series` and "
-                    "extend at least until one time step before the start of `pred_series`."
-                ),
-                logger=logger,
-            )
-        end = end or None
-        vals_a_common = series_a.all_values(copy=make_copy)[:end]
-        vals_b_det = None
-    vals_a_det = _get_values(vals_a_common, stochastic_quantile=stochastic_quantile)
-
-    if not remove_nan_union or is_insample:
-        return vals_a_det, vals_b_det
-
-    b_is_deterministic = bool(len(vals_b_det.shape) == 2)
-    if b_is_deterministic:
-        isnan_mask = np.logical_or(np.isnan(vals_a_det), np.isnan(vals_b_det))
-        isnan_mask_pred = isnan_mask
-    else:
-        isnan_mask = np.logical_or(
-            np.isnan(vals_a_det), np.isnan(vals_b_det).any(axis=2)
-        )
-        isnan_mask_pred = np.repeat(
-            np.expand_dims(isnan_mask, axis=-1), vals_b_det.shape[2], axis=2
-        )
-    return np.where(isnan_mask, np.nan, vals_a_det), np.where(
-        isnan_mask_pred, np.nan, vals_b_det
-    )
-
+            out = np.quantile(vals, stochastic_quantile, axis=2)
+    return out
 
 
 def forecast_bias(actual_series: Union[ np.ndarray],
@@ -212,24 +126,24 @@ def forecast_bias(actual_series: Union[ np.ndarray],
     Parameters
     ----------
     actual_series
-        The `TimeSeries` or `Sequence[TimeSeries]` of actual values.
+        The `TimeSeries` of actual values.
     pred_series
-        The `TimeSeries` or `Sequence[TimeSeries]` of predicted values.
+        The `TimeSeries` of predicted values.
     intersect
         For time series that are overlapping in time without having the same time index, setting `intersect=True`
         will consider the values only over their common time interval (intersection in time).
     reduction
         Function taking as input a `np.ndarray` and returning a scalar value. This function is used to aggregate
-        the metrics of different components in case of multivariate `TimeSeries` instances.
+        the metrics of different components in case of multivariate TimeSeries instances.
     inter_reduction
         Function taking as input a `np.ndarray` and returning either a scalar value or a `np.ndarray`.
         This function can be used to aggregate the metrics of different series in case the metric is evaluated on a
-        `Sequence[TimeSeries]`. Defaults to the identity function, which returns the pairwise metrics for each pair
+        TimeSeries. Defaults to the identity function, which returns the pairwise metrics for each pair
         of `TimeSeries` received in input. Example: `inter_reduction=np.mean`, will return the average of the pairwise
         metrics.
     n_jobs
-        The number of jobs to run in parallel. Parallel jobs are created only when a `Sequence[TimeSeries]` is
-        passed as input, parallelising operations regarding different `TimeSeries`. Defaults to `1`
+        The number of jobs to run in parallel. Parallel jobs are created only when a TimeSeries is
+        passed as input, parallelising operations regarding different TimeSerie`. Defaults to `1`
         (sequential). Setting the parameter to `-1` means using all the available processors.
     verbose
         Optionally, whether to print operations progress
@@ -248,8 +162,10 @@ def forecast_bias(actual_series: Union[ np.ndarray],
     if isinstance(actual_series, np.ndarray):
         y_true, y_pred = actual_series, pred_series
     else:
-        y_true, y_pred = _get_values_or_raise(actual_series, pred_series, intersect)
-    y_true, y_pred = _remove_nan_union(y_true, y_pred)
+        y_true = actual_series
+        y_pred = pred_series
+    #     y_true, y_pred = _get_values_or_raise(actual_series, pred_series, intersect)
+    #y_true, y_pred = _remove_nan_union(y_true, y_pred)
     y_true_sum, y_pred_sum = np.sum(y_true), np.sum(y_pred)
     # raise_if_not(y_true_sum > 0, 'The series of actual value cannot sum to zero when computing OPE.', logger)
     return ((y_true_sum - y_pred_sum) / y_true_sum) * 100.
@@ -263,7 +179,7 @@ def cast_to_series(df):
             raise ValueError("Dataframes with more than one columns cannot be converted to pd.Series")
     return df
 
-def darts_metrics_adapter(metric_func, actual_series,
+def metrics_adapter(metric_func, actual_series,
         pred_series,
         insample = None,
         m: Optional[int] = 1,
@@ -272,56 +188,64 @@ def darts_metrics_adapter(metric_func, actual_series,
         inter_reduction: Callable[[np.ndarray], Union[float, np.ndarray]] = lambda x: x,
         n_jobs: int = 1,
         verbose: bool = False):
-    pass
 
-
-# def darts_metrics_adapter(metric_func, actual_series: Union[TimeSeries, Sequence[TimeSeries]],
-#         pred_series: Union[TimeSeries, Sequence[TimeSeries]],
-#         insample: Union[TimeSeries, Sequence[TimeSeries]] = None,
-#         m: Optional[int] = 1,
-#         intersect: bool = True,
-#         reduction: Callable[[np.ndarray], float] = np.mean,
-#         inter_reduction: Callable[[np.ndarray], Union[float, np.ndarray]] = lambda x: x,
-#         n_jobs: int = 1,
-#         verbose: bool = False):
     
-#     actual_series, pred_series = cast_to_series(actual_series), cast_to_series(pred_series)
-#     if insample is not None:
-#         insample = cast_to_series(insample)
-#     assert type(actual_series) is type(pred_series), f"actual_series({type(actual_series)}) and pred_series({type(pred_series)}) should be of same type."
-#     if insample is not None:
-#         assert type(actual_series) is type(insample), "actual_series and insample should be of same type."
-#     is_nd_array = isinstance(actual_series, np.ndarray)
-#     is_pd_series = isinstance(actual_series, pd.Series)
+    Parameters
+    ----------
+    metric_func (Callable): 
+        The metric function to be applied. It should accept at least two arguments: the actual series and the predicted series. Optional parameters like `insample` for MASE can also be passed if supported by the function.
+    actual_series (np.ndarray or pd.Series): 
+        The actual values of the time series.
+    pred_series (np.ndarray or pd.Series): 
+        The predicted values of the time series.
+    insample (np.ndarray or pd.Series, optional): 
+        The in-sample data needed for some metrics like MASE. Default is None.
+    m (Optional[int]): 
+        An optional integer parameter that might be needed for some metrics, like seasonal MASE, to specify the seasonality. Default is 1.
+    intersect (bool): 
+        If True, aligns the actual and predicted series on their intersection based on their time indices before applying the metric. Default is True.
+    reduction (Callable[[np.ndarray], float]): 
+        A function to reduce the computed metric across dimensions in case of multivariate time series. Default is `np.mean`.
+    inter_reduction (Callable[[np.ndarray], Union[float, np.ndarray]]): 
+        A function to reduce or transform the intermediate computed metrics across multiple time series or ensemble predictions. Defaults to an identity function, which returns the metrics as-is.
+    n_jobs (int): 
+        Number of parallel jobs to run when the metric function supports parallel execution. Defaults to 1 (sequential execution).
+    verbose (bool): 
+        If True, additional details regarding the computation process may be printed. Useful for debugging or tracking computation progress. Defaults to False.
+    Returns
+    ----------
+    ValueError: 
+        If the time index is required (e.g., for MASE) and not available in the series inputs.
+    AssertionError: 
+        If the input series types do not match or expected conditions for parameters are not met.
+ 
+    """
+    actual_series, pred_series = cast_to_series(actual_series), cast_to_series(pred_series)
+    if insample is not None:
+        insample = cast_to_series(insample)
+    assert type(actual_series) is type(pred_series), f"actual_series({type(actual_series)}) and pred_series({type(pred_series)}) should be of same type."
+    if insample is not None:
+        assert type(actual_series) is type(insample), "actual_series and insample should be of same type."
+    is_nd_array = isinstance(actual_series, np.ndarray)
+    is_pd_series = isinstance(actual_series, pd.Series)
     
-#     if is_pd_series:
-#         is_datetime_index = is_datetime_dtypes(actual_series.index) and is_datetime_dtypes(pred_series.index)
-#         if insample is not None:
-#             is_datetime_index = is_datetime_index and is_datetime_dtypes(insample.index)
-#     else:
-#         is_datetime_index = False
-#     if metric_func.__name__ == "mase":
-#         if not is_datetime_index:
-#             raise ValueError("MASE needs pandas Series with datetime index as inputs")
+    if is_pd_series:
+        is_datetime_index = is_datetime_dtypes(actual_series.index) and is_datetime_dtypes(pred_series.index)
+        if insample is not None:
+            is_datetime_index = is_datetime_index and is_datetime_dtypes(insample.index)
+    else:
+        is_datetime_index = False
+    if metric_func.__name__ == "mase":
+        if not is_datetime_index:
+            raise ValueError("MASE needs pandas Series with datetime index as inputs")
     
-#     if is_nd_array or (is_pd_series and not is_datetime_index):
-#         actual_series, pred_series = TimeSeries.from_values(actual_series.values if is_pd_series else actual_series), TimeSeries.from_values(pred_series.values if is_pd_series else pred_series)
-#         if insample is not None:
-#             insample = TimeSeries.from_values(insample.values if is_pd_series else insample)
+    if metric_func.__name__ == "mase":
+        #return metric_func(actual_series=actual_series, pred_series=pred_series, insample=insample, m=m, intersect=intersect, reduction=reduction, inter_reduction=inter_reduction, n_jobs=n_jobs, verbose=verbose)
+        return metric_func(actual_series, pred_series, insample)
 
-#     elif is_pd_series and is_datetime_index:
-#         actual_series, pred_series = TimeSeries.from_series(actual_series), TimeSeries.from_series(pred_series)
-#         if insample is not None:
-#             insample = TimeSeries.from_series(insample)
-#     else:
-#         raise ValueError()
-#     if metric_func.__name__ == "mase":
-#         #return metric_func(actual_series=actual_series, pred_series=pred_series, insample=insample, m=m, intersect=intersect, reduction=reduction, inter_reduction=inter_reduction, n_jobs=n_jobs, verbose=verbose)
-#         return metric_func(actual_series, pred_series, insample)
-
-#     else:
-#         #return metric_func(actual_series=actual_series, pred_series=pred_series, intersect=intersect, reduction=reduction, inter_reduction=inter_reduction, n_jobs=n_jobs, verbose=verbose)
-#         return metric_func(actual_series, pred_series)
+    else:
+        #return metric_func(actual_series=actual_series, pred_series=pred_series, intersect=intersect, reduction=reduction, inter_reduction=inter_reduction, n_jobs=n_jobs, verbose=verbose)
+        return metric_func(actual_series, pred_series)
 
 def mae(actuals, predictions):
     return np.nanmean(np.abs(actuals-predictions))
@@ -329,74 +253,105 @@ def mae(actuals, predictions):
 def mse(actuals, predictions):
     return np.nanmean(np.power(actuals-predictions, 2))
 
+def mase(actuals, predictions, insample):
+    """
+    Calculate the Mean Absolute Scaled Error (MASE).
+    
+    Parameters:
+    actuals : np.ndarray
+        Actual observed values corresponding to the predictions.
+    predictions : np.ndarray
+        Predicted values.
+    insample : np.ndarray
+        In-sample data to calculate the scaling factor based on a naive forecast.
+
+    Returns:
+    float
+        The MASE metric.
+    """
+    # Calculate MAE of predictions
+    mae_predictions = np.nanmean(np.abs(actuals - predictions))
+    
+    # Shift the insample data to create a simple naive forecast
+    naive_forecast = np.roll(insample, 1)
+    # Assuming the first element is not a valid forecast
+    naive_forecast[0] = np.nan 
+    
+    # Calculate MAE of the naive forecast
+    mae_naive = np.nanmean(np.abs(insample - naive_forecast))
+    
+    # Calculate MASE
+    mase_value = mae_predictions / mae_naive
+    return mase_value
+
 def forecast_bias_aggregate(actuals, predictions):
     return 100*(np.nansum(predictions)-np.nansum(actuals))/np.nansum(actuals)
 
-def rmsse(
-    actual_series,
-    pred_series,
-    insample,
-    m = 1,
-    intersect = True,
-    *,
-    reduction = np.mean,
-):
+# def rmsse(
+#     actual_series,
+#     pred_series,
+#     insample,
+#     m = 1,
+#     intersect = True,
+#     *,
+#     reduction = np.mean,
+# ):
 
-    def _multivariate_mase(
-        actual_series,
-        pred_series,
-        insample,
-        m,
-        intersect,
-        reduction,
-    ):
+    # def _multivariate_mase(
+    #     actual_series,
+    #     pred_series,
+    #     insample,
+    #     m,
+    #     intersect,
+    #     reduction,
+    # ):
 
-        assert actual_series.width == pred_series.width, "The two TimeSeries instances must have the same width."
+    #     assert actual_series.width == pred_series.width, "The two TimeSeries instances must have the same width."
         
-        assert actual_series.width == insample.width, "The insample TimeSeries must have the same width as the other series."
+    #     assert actual_series.width == insample.width, "The insample TimeSeries must have the same width as the other series."
         
-        assert insample.end_time() + insample.freq == pred_series.start_time(), "The pred_series must be the forecast of the insample series"
+    #     assert insample.end_time() + insample.freq == pred_series.start_time(), "The pred_series must be the forecast of the insample series"
 
-        insample_ = (
-            insample.quantile_timeseries(quantile=0.5)
-            if insample.is_stochastic
-            else insample
-        )
+    #     insample_ = (
+    #         insample.quantile_timeseries(quantile=0.5)
+    #         if insample.is_stochastic
+    #         else insample
+    #     )
 
-        value_list = []
-        for i in range(actual_series.width):
-            # old implementation of mase on univariate TimeSeries
-            y_true, y_hat = _get_values_or_raise(
-                actual_series.univariate_component(i),
-                pred_series.univariate_component(i),
-                intersect,
-                remove_nan_union=False,
-            )
+    #     value_list = []
+    #     for i in range(actual_series.width):
+    #         # old implementation of mase on univariate TimeSeries
+    #         y_true, y_hat = _get_values_or_raise(
+    #             actual_series.univariate_component(i),
+    #             pred_series.univariate_component(i),
+    #             intersect,
+    #             remove_nan_union=False,
+    #         )
 
-            x_t = insample_.univariate_component(i).values()
-            errors = np.square(y_true - y_hat)
-            scale = np.mean(np.square(x_t[m:] - x_t[:-m]))
-            assert not np.isclose(scale, 0), "cannot use MASE with periodical signals"
-            value_list.append(np.sqrt(np.mean(errors / scale)))
+    #         x_t = insample_.univariate_component(i).values()
+    #         errors = np.square(y_true - y_hat)
+    #         scale = np.mean(np.square(x_t[m:] - x_t[:-m]))
+    #         assert not np.isclose(scale, 0), "cannot use MASE with periodical signals"
+    #         value_list.append(np.sqrt(np.mean(errors / scale)))
 
-        return reduction(value_list)
+    #     return reduction(value_list)
 
-    if isinstance(actual_series
-                  #, TimeSeries
-                  ):
-        #assert isinstance(pred_series, TimeSeries), "Expecting pred_series to be TimeSeries"
-        #assert isinstance(insample, TimeSeries), "Expecting insample to be TimeSeries"
-        return _multivariate_mase(
-            actual_series=actual_series,
-            pred_series=pred_series,
-            insample=insample,
-            m=m,
-            intersect=intersect,
-            reduction=reduction,
-        )
-    else:
-        raise(
-            ValueError(
-                "Input type not supported, only TimeSeries is accepted."
-            )
-        )
+    # if isinstance(actual_series
+    #               #, TimeSeries
+    #               ):
+    #     #assert isinstance(pred_series, TimeSeries), "Expecting pred_series to be TimeSeries"
+    #     #assert isinstance(insample, TimeSeries), "Expecting insample to be TimeSeries"
+    #     return _multivariate_mase(
+    #         actual_series=actual_series,
+    #         pred_series=pred_series,
+    #         insample=insample,
+    #         m=m,
+    #         intersect=intersect,
+    #         reduction=reduction,
+    #     )
+    # else:
+    #     raise(
+    #         ValueError(
+    #             "Input type not supported, only TimeSeries is accepted."
+    #         )
+    #     )

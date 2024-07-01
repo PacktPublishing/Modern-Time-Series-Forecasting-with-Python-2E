@@ -5,12 +5,12 @@ from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
-from darts.metrics import mae, mase, mse
+
 from sklearn.base import BaseEstimator, clone
 from sklearn.preprocessing import StandardScaler
 
 from src.utils.general import difference_list, intersect_list
-from src.utils.ts_utils import darts_metrics_adapter, forecast_bias
+from src.utils.ts_utils import forecast_bias, mae, mse, mase, metrics_adapter
 
 # from category_encoders import OneHotEncoder
 
@@ -386,14 +386,15 @@ def calculate_metrics(
     """
     return {
         "Algorithm": name,
-        "MAE": darts_metrics_adapter(mae, actual_series=y, pred_series=y_pred),
-        "MSE": darts_metrics_adapter(mse, actual_series=y, pred_series=y_pred),
-        "MASE": darts_metrics_adapter(
+        "MAE": metrics_adapter(mae, actual_series=y, pred_series=y_pred),
+        "MSE": metrics_adapter(mse, actual_series=y, pred_series=y_pred),
+        "MASE": metrics_adapter(
             mase, actual_series=y, pred_series=y_pred, insample=y_train
         )
         if y_train is not None
         else None,
-        "Forecast Bias": darts_metrics_adapter(
+        "Forecast Bias": metrics_adapter(
             forecast_bias, actual_series=y, pred_series=y_pred
-        ),
+        )
+        
     }
