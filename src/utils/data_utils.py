@@ -3,7 +3,7 @@ from collections import defaultdict
 from datetime import datetime
 import distutils
 import pandas as pd
-from tqdm.autonotebook import tqdm
+from tqdm.auto import tqdm
 import numpy as np
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
 

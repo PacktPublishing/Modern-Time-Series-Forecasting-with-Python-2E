@@ -148,3 +148,4 @@ lightning_logs/
 notebooks/Chapter16/saved_weights
 api_keys/kaggle.json
 notes.txt
+saved_weights/

@@ -7,7 +7,7 @@ from typing import Callable, List, Tuple
 import numpy as np
 import pandas as pd
 from scipy import optimize
-from tqdm.autonotebook import tqdm
+from tqdm.auto import tqdm
 
 from src.utils import ts_utils
 
