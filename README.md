@@ -49,37 +49,43 @@ For experienced machine learning and forecasting practitioners, this book has a 
 
 # Setup the environment
 The easiest way to setup the environment is by using Anaconda, a distribution of Python for scientific computing. You can use Miniconda, a minimal installer for conda as well if you do not want the pre-installed packages that come with Anaconda. 
-
+## Using Anaconda/Mamba
 1.	Install Anaconda/Miniconda: Anaconda can be installed from https://www.anaconda.com/products/distribution. Depending on your operating system choose the corresponding file and follow instructions. Or you can install Miniconda from here: https://docs.conda.io/en/latest/miniconda.html#latest-miniconda-installer-links.
 2.	Open conda prompt: To open Anaconda Prompt (or terminal on Linux or macOS):
     1.	Windows: Open the Anaconda Prompt (Start >> Anaconda Prompt)
     2.	macOS: Open Launchpad and then open Terminal. Type `conda activate`
     3.	Linux: Open Terminal. Type `conda activate`
-3.	Navigate to the downloaded code: Use operating system specific commands to navigate to the folder where you have downloaded the code. For instance, in Windows, use `cd`.
-4.	Install the environment: Using the anaconda_env.yml file that is included install the environment. 
-`conda env create -f anaconda_env.yml`
-	This creates a new environment under the name, `modern_ts_2E`, and will install all the required libraries in the environment. This can take a while.
-5.	Checking the installation: We can check if all the libraries required for the book is installed properly by executing a script in the downloaded code folder
+3. Install Mamba (Recommended as you may face problem resolving dependencies with conda): Mamba is a fast, robust, and cross-platform package manager. It runs on Windows, OS X and Linux (ARM64 and PPC64LE included) and is fully compatible with conda packages and supports most of conda’s commands (just replace `conda` with `mamba`). You can install it using the following command:
+`conda install mamba -n base -c conda-forge`
+4. Create a new environment: Use the following command to create a new environment of your choice. For instance, to create an environment named `modern_ts_2E` with Python 3.10 (recommended touse 3.10 or above), use the following command:
+`mamba create -n modern_ts_2E python=3.10`
+5. Activate the environment: Use the following command to activate the environment:
+`conda activate modern_ts_2E`
+6. Install Pytorch from the official website: Pytorch is best installed from the official website. Go to https://pytorch.org/get-started/locally/ and select the appropriate options for your system. you can replace `conda` with `mamba` if you want to use mamba to install.
+7.	Navigate to the downloaded code: Use operating system specific commands to navigate to the folder where you have downloaded the code. For instance, in Windows, use `cd`.
+7. Install the required libraries: Use the provided `anaconda_env.yml` file to install all the required libraries. Use the following command:
+`mamba env update --file anaconda_env.yml`
+This will install all the required libraries in the environment. This can take a while.
+8.	Checking the installation: We can check if all the libraries required for the book is installed properly by executing a script in the downloaded code folder
+`python test_installation.py`. If the GPU is not showing up, install PyTorch again on top of the environment.
+9.	Activating the environment and Running Notebooks: Every time you want to run the notebooks, first activate the environment using the command `conda activate modern_ts_2E` and then use Jupyter Notebook (`jupyter notebook`) or Jupyter Lab (`jupyter lab`) according to your preference.
+
+## Using Pip based environment
+1.	Install Python: You can download Python from https://www.python.org/downloads/. Make sure to install Python 3.10 or above.
+2. Create a virtual environment: Use the following command to create a virtual environment named `modern_ts_2E`:
+`python -m venv modern_ts_2E`
+3. Activate the environment: Use the following command to activate the environment:
+    1. Windows: `modern_ts_2E\Scripts\activate`
+    2. macOS/Linux: `source modern_ts_2E/bin/activate`
+4. Install PyTorch: Pytorch is best installed from the official website. Go to https://pytorch.org/get-started/locally/ and select the appropriate options for your system.
+5. Navigate to the downloaded code: Use operating system specific commands to navigate to the folder where you have downloaded the code. For instance, in Windows, use `cd`.
+6. Install the required libraries: Use the provided `requirements.txt` file to install all the required libraries. Use the following command:
+`pip install -r requirements.txt`
+This will install all the required libraries in the environment. This can take a while.
+7. Checking the installation: We can check if all the libraries required for the book is installed properly by executing a script in the downloaded code folder
 `python test_installation.py`
-6.	Activating the environment and Running Notebooks: Every time you want to run the notebooks, first activate the environment using the command `conda activate modern_ts_2E` and then use Jupyter Notebook (`jupyter notebook`) or Jupyter Lab (`jupyter lab`) according to your preference.
+8. Activating the environment and Running Notebooks: Every time you want to run the notebooks, first activate the environment using the command `modern_ts_2E\Scripts\activate` (Windows) or `source modern_ts_2E/bin/activate` (macOS/Linux) and then use Jupyter Notebook (`jupyter notebook`) or Jupyter Lab (`jupyter lab`) according to your preference.
 
-## If anaconda installation stalls
-Sometimes the anaconda installation can stall at `Solving Environment`. This is because anaconda can sometimes be really slow at resolving package dependencies. We can get around this by using `Mamba`.
-
-`Mamba` is a fast, robust, and cross-platform package manager.
-
-It runs on Windows, OS X and Linux (ARM64 and PPC64LE included) and is fully compatible with conda packages and supports most of conda’s commands.
-
-All we need to do is:
-1. Install mamba - `conda install mamba -n base -c conda-forge`
-2. Instead of using conda, use mamba to install the environment - `mamba env create -f anaconda_env.yml`
-
-## Special Instructions for MacOS
-If the installation doesn't work for MacOS, please try the following:
-1.	In `anaconda_env.yml`, change the line `python-kaleido==0.1.0` to `python-kaleido>=0.1.0`
-2.  In `anaconda_env.yml`, change the line `statsforecast==0.6.0` to `statsforecast>=0.6.0`
-
-Now, try installing the environment again. If this doesn't work, please raise an issue on the GitHub repo.
 # Download the Data
 You are going to be using a single dataset throughout the book. The book uses London Smart Meters Dataset from Kaggle for this purpose. Therefore, if you don’t have an account with Kaggle, please go ahead and make one. https://www.kaggle.com/account/login?phase=startRegisterTab
 There are two ways you can download the data- automated and manual. 

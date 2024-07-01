@@ -188,8 +188,7 @@ def metrics_adapter(metric_func, actual_series,
         inter_reduction: Callable[[np.ndarray], Union[float, np.ndarray]] = lambda x: x,
         n_jobs: int = 1,
         verbose: bool = False):
-    """
-    This function is designed to adapt various time series metrics functions to ensure they are compatible with the expected input types, handling both numpy arrays and pandas Series. It standardizes input time series data before passing them to the specified metric function, providing a flexible interface for time series analysis.
+
     
     Parameters
     ----------
