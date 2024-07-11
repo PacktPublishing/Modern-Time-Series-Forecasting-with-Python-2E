@@ -4,9 +4,9 @@ Modern Time Series Forecasting with Python 2E, Published by Packt
 
 # Modern Time Series Forecasting with Python
 
-<a href="https://www.packtpub.com/product/modern-time-series-forecasting-with-python/9781803246802?utm_source=github&utm_medium=repository&utm_campaign=9781803246802"><img src="https://static.packt-cdn.com/products/9781803246802/cover/smaller" alt="Modern Time Series Forecasting with Python 2nd Edition" height="256px" align="right"></a>
+<a href="https://www.packtpub.com/en-us/product/modern-time-series-forecasting-with-python-9781835883181"><img src="https://content.packt.com/_/image/original/B22389/cover_image_large.jpg" alt="Modern Time Series Forecasting with Python 2nd Edition" height="256px" align="right"></a>
 
-This is the code repository for [Modern Time Series Forecasting with Python](https://github.com/PacktPublishing/Modern-Time-Series-Forecasting-with-Python-2E), published by Packt.
+This is the code repository for [Modern Time Series Forecasting with Python](https://www.packtpub.com/en-us/product/modern-time-series-forecasting-with-python-9781835883181), published by Packt.
 
 **Explore industry-ready time series forecasting using modern machine learning and deep learning**
 
@@ -25,7 +25,7 @@ This book covers the following exciting features:
 * Understand and apply state-of-the-art DL models such as N-BEATS and Autoformer
 * Explore multi-step forecasting and cross-validation strategies
 
-If you feel this book is for you, get your [copy](https://www.amazon.com/dp/B09NC5XJ6D) today!
+If you feel this book is for you, get your [copy](https://a.co/d/0guEbBsv) today!
 
 <a href="https://www.packtpub.com/?utm_source=github&utm_medium=banner&utm_campaign=GitHubBanner"><img src="https://raw.githubusercontent.com/PacktPublishing/GitHub/master/GitHub.png" 
 alt="https://www.packtpub.com/" border="5" /></a>
