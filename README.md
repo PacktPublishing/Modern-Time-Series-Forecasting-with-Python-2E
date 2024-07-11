@@ -4,7 +4,7 @@ Modern Time Series Forecasting with Python 2E, Published by Packt
 
 # Modern Time Series Forecasting with Python
 
-<a href="https://www.packtpub.com/product/modern-time-series-forecasting-with-python/9781803246802?utm_source=github&utm_medium=repository&utm_campaign=9781803246802"><img src="https://static.packt-cdn.com/products/9781803246802/cover/smaller" alt="Modern Time Series Forecasting with Python 2nd Edition" height="256px" align="right"></a>
+<a href="https://www.packtpub.com/en-us/product/modern-time-series-forecasting-with-python-9781835883181"><img src="https://content.packt.com/_/image/original/B22389/cover_image_large.jpg" alt="Modern Time Series Forecasting with Python 2nd Edition" height="256px" align="right"></a>
 
 This is the code repository for [Modern Time Series Forecasting with Python](https://github.com/PacktPublishing/Modern-Time-Series-Forecasting-with-Python-2E), published by Packt.
 
