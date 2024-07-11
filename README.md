@@ -6,7 +6,7 @@ Modern Time Series Forecasting with Python 2E, Published by Packt
 
 <a href="https://www.packtpub.com/en-us/product/modern-time-series-forecasting-with-python-9781835883181"><img src="https://content.packt.com/_/image/original/B22389/cover_image_large.jpg" alt="Modern Time Series Forecasting with Python 2nd Edition" height="256px" align="right"></a>
 
-This is the code repository for [Modern Time Series Forecasting with Python](https://github.com/PacktPublishing/Modern-Time-Series-Forecasting-with-Python-2E), published by Packt.
+This is the code repository for [Modern Time Series Forecasting with Python](https://www.packtpub.com/en-us/product/modern-time-series-forecasting-with-python-9781835883181), published by Packt.
 
 **Explore industry-ready time series forecasting using modern machine learning and deep learning**
 
