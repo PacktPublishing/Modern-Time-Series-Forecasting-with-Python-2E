@@ -149,3 +149,5 @@ notebooks/Chapter16/saved_weights
 api_keys/kaggle.json
 notes.txt
 saved_weights/
+test_mc_nf.py
+test_mc.py
