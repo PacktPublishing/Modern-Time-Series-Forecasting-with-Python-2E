@@ -405,7 +405,7 @@ class BoxCoxTransformer:
             pd.Series: The transformed series
         """
         self.fit(y)
-        return self.transform(y)
+        return self.transform(y, add_one_=False)
 
     def _add_one(self, y):
         if self.add_one:
@@ -495,7 +495,7 @@ class BoxCoxTransformer:
         self._is_fitted = True
         return self
 
-    def transform(self, y: pd.Series) -> pd.Series:
+    def transform(self, y: pd.Series, add_one_=True) -> pd.Series:
         """Applies the log transform
 
         Args:
@@ -510,7 +510,8 @@ class BoxCoxTransformer:
         check_fitted(self._is_fitted)
         y = check_input(y)
         check_negative(y)
-        y = self._add_one(y)
+        if add_one_:
+            y = self._add_one(y)
         return pd.Series(boxcox(y.values, lmbda=self.boxcox_lambda), index=y.index)
 
     def inverse_transform(self, y: pd.Series) -> pd.Series:
