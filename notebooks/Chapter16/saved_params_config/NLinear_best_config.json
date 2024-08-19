@@ -1,0 +1,8 @@
+{
+    "max_steps": 100,
+    "input_size": 672,
+    "learning_rate": 0.009290541672608864,
+    "scaler_type": "minmax",
+    "batch_size": 128,
+    "random_seed": 20
+}
