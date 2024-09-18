@@ -1,0 +1,57 @@
+# name: modern_ts_2E
+channels:
+  - conda-forge
+  - defaults
+  - pytorch
+dependencies:
+  - python>=3.10
+  - plotly
+  - py-xgboost
+  - scikit-learn>=0.21.2
+  - pandas>=2.0
+  - catboost
+  - lightgbm
+  - category_encoders
+  - ipywidgets[version='>=7.6']
+  - jupyterlab[version='>=3']
+  # - black
+  # - isort
+  # - xlrd
+  # - lxml
+  - openpyxl
+  # - python-kaleido
+  - pyarrow
+  - numpy>=1.24
+  - scipy>=1.10
+  - tqdm
+  - matplotlib>=3.7
+  - humanize
+  - optuna>=3.4
+  - numba
+  - networkx>=3.1
+  - holidays
+  - seaborn
+  - statsmodels=0.14.0 # Currently bug in 1.7.4.  Can update to newest version if bug is fixed.
+  - statsforecast=1.7.3
+  - neuralforecast=1.7.2
+  # - pytorch::pytorch
+  # - pytorch::torchvision
+  # - pytorch::torchaudio
+  - pytorch-lightning>=2.0
+  - pip
+  - pip:
+    - kaggle>=1.5.2
+    - missingno>=0.5.0
+    - window_ops
+    - pymannkendall
+    # - fancyimpute
+    - tsfel
+    # - plotly-resampler
+    - rich
+    # - kaleido
+    - pytorch_tabular # for full features pytorch_tabular[all]
+    - omegaconf
+    - tensor-sensor[torch]
+    - pytorch_optimizer==3.0.0
+    # - jupyterlab-code-formatter>=1.4.10
+    # - aquirdturtle_collapsible_headings>=3.1.0
