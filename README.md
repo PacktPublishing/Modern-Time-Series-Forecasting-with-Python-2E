@@ -87,41 +87,16 @@ This will install all the required libraries in the environment. This can take a
 8. Activating the environment and Running Notebooks: Every time you want to run the notebooks, first activate the environment using the command `modern_ts_2E\Scripts\activate` (Windows) or `source modern_ts_2E/bin/activate` (macOS/Linux) and then use Jupyter Notebook (`jupyter notebook`) or Jupyter Lab (`jupyter lab`) according to your preference.
 
 # Download the Data
-You are going to be using a single dataset throughout the book. The book uses London Smart Meters Dataset from Kaggle for this purpose. Therefore, if you don’t have an account with Kaggle, please go ahead and make one. https://www.kaggle.com/account/login?phase=startRegisterTab
-There are two ways you can download the data- automated and manual. 
-For the automated way, we need to download a key from Kaggle. Let’s do that first (if you are going to choose the manual way, you can skip this).
-1.	Click on your profile picture on the top right corner of Kaggle
-2.	Select "Account”, and find the section for “API”
-3.	Click the “Create New API Token” button. A file by the name kaggle.json will be downloaded.
-4.	Copy the file and place it in the api_keys folder in the downloaded code folder.
-Now that we have the kaggle.json downloaded and placed in the right folder, let’s look at the three methods to download data:
-## Method 1: Automated Download
-1.	Activate the environment using `conda activate modern_ts_2E`
-2.	Run the provided script from the root directory of downloaded code `python scripts/download_data.py`
-That’s it. Now just wait for the script to finish downloading, unzipping and organize the files in the expected format.
-## Method 2: Manual Download
-1.	Go to https://www.kaggle.com/jeanmidev/smart-meters-in-london and download the dataset
-2.	Unzip the contents to data/london_smart_meters
-3.	Unzip hhblock_dataset to get the raw files we want to work with.
-4.	Make sure the unzipped files are in the expected folder structure (next section)
-Now that you have downloaded the data, we need to make sure it is arranged in the below folder structure. Automated Download does it automatically, but for Manual Download this structure needs to be created. To avoid ambiguity, the expected folder structure can be found below:
+You are going to be using a single dataset throughout the book. The book uses London Smart Meters Dataset from Kaggle for this purpose. Many of the notebooks from early chapters are dependencies for some of the later chapters.  As such, to remove this dependency if you want to run the notebooks out of order, we have included a data.zip file with all of the required datasets. 
+To setup, follow these steps:
+1. Download the data from AWS: https://packt-modern-time-series-py.s3.eu-west-1.amazonaws.com/data.zip 
+2. Unzip the content
+3. Copy over the data folder to the Modern-Time-Series-Forecasting-with-Python-2E folder you pull from github. 
+
+That's it!  You are now ready to start running the code.
+
 ```
-data
-├── london_smart_meters
-│   ├── hhblock_dataset
-│   │   ├── hhblock_dataset
-│   │       ├── block_0.csv
-│   │       ├── block_1.csv
-│   │       ├── ...
-│   │       ├── block_109.csv
-│   │── acorn_details.csv
-│   ├── informations_households.csv
-│   ├── uk_bank_holidays.csv
-│   ├── weather_daily_darksky.csv
-│   ├── weather_hourly_darksky.csv
-```
-There can be additional files as part of the extraction process. You can remove them without impacting anything. There is a helpful script which checks this structure.
-python test_data_download.py
+
 
 # Blocks vs RAM
 
