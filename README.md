@@ -48,20 +48,21 @@ For experienced machine learning and forecasting practitioners, this book has a 
 
 
 # Setup the environment
-The easiest way to setup the environment is by using Anaconda, a distribution of Python for scientific computing. You can use Miniconda, a minimal installer for conda as well if you do not want the pre-installed packages that come with Anaconda. 
+Setting up an environment, preferably a separate one, for the book is highly recommended. There are two main ways we suggest to create the environment – _Anaconda/Mamba_ or _Python Virtual Environment_.
+
+The easiest way to set up an environment is by using _Anaconda_, a distribution of Python for scientific computing. You can use _Minicond_a_, a minimal installer for Conda, as well if you do not want the pre-installed packages that come with Anaconda. And you can also use _Mamba_, a reimplementation of the conda package manager in C++. It is much faster than conda and is a drop-in replacement for conda. _Mamba_ is the recommended way because it has much less chances of getting stuck at the dreaded **“Resolving dependencies…”** screen in _Anaconda_. If you are using Anaconda version 23.10 or above, then you need not worry about Mamba that much because the fast and efficient package resolver is part of anaconda by default.
+
 ## Using Anaconda/Mamba
-1.	Install Anaconda/Miniconda: Anaconda can be installed from https://www.anaconda.com/products/distribution. Depending on your operating system choose the corresponding file and follow instructions. Or you can install Miniconda from here: https://docs.conda.io/en/latest/miniconda.html#latest-miniconda-installer-links.
+1.	1.	Install Anaconda/Miniconda/Mamba/MicroMamba: Anaconda can be installed from https://www.anaconda.com/products/distribution. Depending on your operating system, choose the corresponding file and follow the instructions. Alternatively, you can install Miniconda from here: https://docs.conda.io/en/latest/miniconda.html#latest-miniconda-installer-links. For Mamba and MicroMamba you can install from here: https://mamba.readthedocs.io/en/latest/ . In case you are using Mamba, in all the instructions below replace `conda` with `mamba`.
 2.	Open conda prompt: To open Anaconda Prompt (or terminal on Linux or macOS):
     1.	Windows: Open the Anaconda Prompt (Start >> Anaconda Prompt)
     2.	macOS: Open Launchpad and then open Terminal. Type `conda activate`
     3.	Linux: Open Terminal. Type `conda activate`
-3. Install Mamba (Recommended as you may face problem resolving dependencies with conda): Mamba is a fast, robust, and cross-platform package manager. It runs on Windows, OS X and Linux (ARM64 and PPC64LE included) and is fully compatible with conda packages and supports most of conda’s commands (just replace `conda` with `mamba`). You can install it using the following command:
-`conda install mamba -n base -c conda-forge`
-4. Create a new environment: Use the following command to create a new environment of your choice. For instance, to create an environment named `modern_ts_2E` with Python 3.10 (recommended touse 3.10 or above), use the following command:
-`mamba create -n modern_ts_2E python=3.10`
-5. Activate the environment: Use the following command to activate the environment:
+3. Create a new environment: Use the following command to create a new environment of your choice. For instance, to create an environment named `modern_ts_2E` with Python 3.10 (recommended to use 3.10 or above), use the following command:
+`conda create -n modern_ts_2E python=3.10`
+4. Activate the environment: Use the following command to activate the environment:
 `conda activate modern_ts_2E`
-6. Install Pytorch from the official website: Pytorch is best installed from the official website. Go to https://pytorch.org/get-started/locally/ and select the appropriate options for your system. you can replace `conda` with `mamba` if you want to use mamba to install.
+6. Install PyTorch from the official website: PyTorch is best installed from the official website. Go to https://pytorch.org/get-started/locally/ and select the appropriate options for your system. you can replace `conda` with `mamba` if you want to use mamba to install.
 7.	Navigate to the downloaded code: Use operating system specific commands to navigate to the folder where you have downloaded the code. For instance, in Windows, use `cd`.
 7. Install the required libraries: Use the provided `anaconda_env.yml` file to install all the required libraries. Use the following command:
 `mamba env update --file anaconda_env.yml`
