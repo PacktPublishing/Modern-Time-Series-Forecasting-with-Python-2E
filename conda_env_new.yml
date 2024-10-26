@@ -28,8 +28,9 @@ dependencies:
   - holidays>=0.13.0,<1.0.0
   - seaborn>=0.13.2,<1.0.0
   - statsmodels>=0.14.0,<0.15.0
-  - statsforecast>=1.7.3,<2.0.0
-  - neuralforecast>=1.7.2,<2.0.0
+  - statsforecast==1.7.8
+  - utilsforecast==0.2.5
+  - neuralforecast==1.7.4
   - mlforecast>=0.13.1,<1.0.0
   - pytorch-lightning>=2.0.0,<3.0.0
   - pip>=21.0.0,<23.0.0
