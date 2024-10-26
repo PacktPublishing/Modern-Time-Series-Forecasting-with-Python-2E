@@ -116,7 +116,7 @@ We also provide a PDF file that has color images of the screenshots/diagrams use
 
 * Practical Deep Learning at Scale with MLflow [[Packt]](https://www.packtpub.com/product/practical-deep-learning-at-scale-with-mlflow/9781803241333) [[Amazon]](https://www.amazon.com/dp/1803241330)
 
-## Get to Know the Author
+## Get to Know the Authors
 **Manu Joseph**
 is a self-made data scientist with more than a decade of experience working with many
 Fortune 500 companies, enabling digital and AI transformations, specifically in machine learningbased demand forecasting. He is considered an expert, thought leader, and strong voice in the world
@@ -126,6 +126,8 @@ contributor and has developed an open source library—PyTorch Tabular—which m
 for tabular data easy and accessible. Originally from Thiruvananthapuram, India, Manu currently
 resides in Bengaluru, India, with his wife and son.
 
+**Jeff Tackes**
+is a seasoned data scientist specializing in demand forecasting with over a decade of industry experience. Currently he is at Kraft Heinz, where he leads the research team in charge of demand forecasting.  He has pioneered the development of best-in-class forecasting systems utilized by leading Fortune 500 companies. Jeff’s approach combines a robust data-driven methodology with innovative strategies, enhancing forecasting models and business outcomes significantly. Leading cross-functional teams, Jeff has designed and implemented demand forecasting systems that have markedly improved forecast accuracy, inventory optimization, and customer satisfaction. His proficiency in statistical modeling, machine learning, and advanced analytics has led to the implementation of forecasting methodologies that consistently surpass industry norms. Jeff’s strategic foresight and his capability to align forecasting initiatives with overarching business objectives have established him as a trusted advisor to senior executives and a prominent expert in the data science domain. Additionally, Jeff actively contributes to the open-source community, notably to PyTimeTK, where he develops tools that enhance time series analysis capabilities.  He currently resides in Chicago, IL with his wife and son.
 
 ### Download a free PDF
 
