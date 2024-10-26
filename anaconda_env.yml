@@ -31,9 +31,10 @@ dependencies:
   - networkx>=3.1
   - holidays
   - seaborn
-  - statsmodels=0.14.0 # Currently bug in 1.7.4.  Can update to newest version if bug is fixed.
-  - statsforecast=1.7.3
-  - neuralforecast=1.7.2
+  - statsmodels==0.14.0 # Currently bug in 1.7.4.  Can update to newest version if bug is fixed.
+  - statsforecast==1.7.8
+  - neuralforecast==1.7.4
+  - utilsforecast==0.2.5
   # - pytorch::pytorch
   # - pytorch::torchvision
   # - pytorch::torchaudio
