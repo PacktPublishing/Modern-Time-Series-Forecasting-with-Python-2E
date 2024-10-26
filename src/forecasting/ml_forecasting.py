@@ -275,28 +275,59 @@ class MLForecast:
         )
         if self.model_config.fill_missing:
             X = self.missing_config.impute_missing_values(X)
+
+        # if self.model_config.encode_categorical:
+        #     missing_cat_cols = difference_list(
+        #         self._categorical_feats,
+        #         self.model_config.categorical_encoder.cols,
+        #     )
+        #     assert (
+        #         len(missing_cat_cols) == 0
+        #     ), f"These categorical features are not handled by the categorical_encoder : {missing_cat_cols}"
+        #     # In later versions of sklearn get_feature_names have been deprecated
+        #     try:
+        #         feature_names = self.model_config.categorical_encoder.get_feature_names()
+        #     except AttributeError:
+        #         # in favour of get_feature_names_out()
+        #         feature_names = self.model_config.categorical_encoder.get_feature_names_out()
+        #     X = self._cat_encoder.fit_transform(X, y)
+        #     self._encoded_categorical_features = difference_list(
+        #         feature_names,
+        #         self.feature_config.continuous_features
+        #         + self.feature_config.boolean_features,
+        #     )
+        # else:
+        #     self._encoded_categorical_features = []
+
+        #Fixed Chapt 10 issue to move fit_transform before get_feature_names()
         if self.model_config.encode_categorical:
             missing_cat_cols = difference_list(
                 self._categorical_feats,
-                self.model_config.categorical_encoder.cols,
+                self._cat_encoder.cols,
             )
             assert (
                 len(missing_cat_cols) == 0
-            ), f"These categorical features are not handled by the categorical_encoder : {missing_cat_cols}"
-            # In later versions of sklearn get_feature_names have been deprecated
-            try:
-                feature_names = self.model_config.categorical_encoder.get_feature_names()
-            except AttributeError:
-                # in favour of get_feature_names_out()
-                feature_names = self.model_config.categorical_encoder.get_feature_names_out()
+            ), f"These categorical features are not handled by the categorical_encoder: {missing_cat_cols}"
+            
+            # Fit the encoder before getting feature names
             X = self._cat_encoder.fit_transform(X, y)
+            
+            # Now get the feature names from the fitted encoder
+            try:
+                feature_names = self._cat_encoder.get_feature_names()
+            except AttributeError:
+                # For newer versions of sklearn
+                feature_names = self._cat_encoder.get_feature_names_out()
+            
             self._encoded_categorical_features = difference_list(
                 feature_names,
-                self.feature_config.continuous_features
-                + self.feature_config.boolean_features,
+                self.feature_config.continuous_features + self.feature_config.boolean_features,
             )
         else:
             self._encoded_categorical_features = []
+
+
+
         if self.model_config.normalize:
             X[
                 self._continuous_feats + self._encoded_categorical_features
