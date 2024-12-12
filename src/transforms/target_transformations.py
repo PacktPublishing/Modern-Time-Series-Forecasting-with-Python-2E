@@ -489,7 +489,6 @@ class BoxCoxTransformer:
         """
         check_input(y)
         check_negative(y)
-        y = self._add_one(y)
         if self._do_optimize:
             self.boxcox_lambda = self._optimize_lambda(y)
         self._is_fitted = True
