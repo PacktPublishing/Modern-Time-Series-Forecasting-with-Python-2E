@@ -246,7 +246,6 @@ def metrics_adapter(
         If the time index is required (e.g., for MASE) and not available in the series inputs.
     AssertionError:
         If the input series types do not match or expected conditions for parameters are not met.
-
     """
     actual_series, pred_series = cast_to_series(actual_series), cast_to_series(
         pred_series
