@@ -284,65 +284,60 @@ def mase(actuals, predictions, insample):
     mase_value = mae_predictions / mae_naive
     return mase_value
 
+
 def forecast_bias_aggregate(actuals, predictions):
-    return 100*(np.nansum(predictions)-np.nansum(actuals))/np.nansum(actuals)
+    return 100 * (np.nansum(predictions) - np.nansum(actuals)) / np.nansum(actuals)
 
 
+# Average Length that wors with utilsforecast (Nixtla)
+def average_length(
+    df: pd.DataFrame,
+    models: List[str],
+    level: int,
+    id_col: str = "unique_id",
+    target_col: str = "y",
+) -> pd.DataFrame:
+    """Average Length of y_hat_lo and y_hat_hi.
 
-# def rmsse(
-#     actual_series,
-#     pred_series,
-#     insample,
-#     m = 1,
-#     intersect = True,
-#     *,
-#     reduction = np.mean,
-# ):
+    Parameters
+    ----------
+    df : pandas or polars DataFrame
+        Input dataframe with id, times, actuals and predictions.
+    models : list of str
+        Columns that identify the models predictions.
+    level : int
+        Confidence level used for intervals.
+    id_col : str (default='unique_id')
+        Column that identifies each serie.
+    target_col : str (default='y')
+        Column that contains the target.
 
-#     def _multivariate_mase(
-#         actual_series,
-#         pred_series,
-#         insample,
-#         m,
-#         intersect,
-#         reduction,
-#     ):
+    Returns
+    -------
+    pandas or polars Dataframe
+        dataframe with one row per id and one column per model.
+    """
+    if isinstance(df, pd.DataFrame):
+        out = np.empty((df.shape[0], len(models)))
+        for j, model in enumerate(models):
+            out[:, j] = df[f"{model}-hi-{level}"] - df[f"{model}-lo-{level}"]
+        res = (
+            pd.DataFrame(out, columns=models, index=df.index)
+            .groupby(df[id_col], observed=True)
+            .mean()
+        )
+        res.index.name = id_col
+        res = res.reset_index()
+    else:
+        raise NotImplementedError("Only pandas DataFrames are supported for now.")
+    return res
 
-#         assert actual_series.width == pred_series.width, "The two TimeSeries instances must have the same width."
-        
-#         assert actual_series.width == insample.width, "The insample TimeSeries must have the same width as the other series."
-        
-#         assert insample.end_time() + insample.freq == pred_series.start_time(), "The pred_series must be the forecast of the insample series"
 
-#         insample_ = (
-#             insample.quantile_timeseries(quantile=0.5)
-#             if insample.is_stochastic
-#             else insample
-#         )
+def level_to_quantiles(l):
+    if l > 1:
+        l = l / 100
+    return [round(q, 2) for q in [0.5 - l * 0.5, 0.5 + l * 0.5]]
 
-#         value_list = []
-#         for i in range(actual_series.width):
-#             # old implementation of mase on univariate TimeSeries
-#             y_true, y_hat = _get_values_or_raise(
-#                 actual_series.univariate_component(i),
-#                 pred_series.univariate_component(i),
-#                 intersect,
-#                 remove_nan_union=False,
-#             )
 
-#             x_t = insample_.univariate_component(i).values()
-#             errors = np.square(y_true - y_hat)
-#             scale = np.mean(np.square(x_t[m:] - x_t[:-m]))
-#             assert not np.isclose(scale, 0), "cannot use MASE with periodical signals"
-#             value_list.append(np.sqrt(np.mean(errors / scale)))
-
-#         return reduction(value_list)
-
-#     return _multivariate_mase(
-#         actual_series=actual_series,
-#         pred_series=pred_series,
-#         insample=insample,
-#         m=m,
-#         intersect=intersect,
-#         reduction=reduction,
-#     )
+def error_rate_to_quantiles(alpha):
+    return [round(q, 2) for q in [alpha / 2, 1 - alpha / 2]]
