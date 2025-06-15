@@ -14,12 +14,7 @@ dependencies:
   - category_encoders
   - ipywidgets[version='>=7.6']
   - jupyterlab[version='>=3']
-  # - black
-  # - isort
-  # - xlrd
-  # - lxml
   - openpyxl
-  # - python-kaleido
   - pyarrow
   - numpy>=1.24
   - scipy>=1.10
@@ -48,7 +43,6 @@ dependencies:
     - tsfel
     # - plotly-resampler
     - rich
-    # - kaleido
     - pytorch_tabular # for full features pytorch_tabular[all]
     - omegaconf
     - tensor-sensor[torch]
