@@ -91,7 +91,8 @@ class BaseModel(pl.LightningModule, metaclass=ABCMeta):
     def calculate_metrics(self, y, y_hat, tag):
         metrics = []
         for metric, metric_str in zip(self.metrics, self.metrics_name):
-            avg_metric = metric(y_hat, y)
+            #avg_metric = metric(y_hat, y)
+            avg_metric = metric(y_hat.contiguous(), y.contiguous())
             self.log(
                 f"{tag}_{metric_str}",
                 avg_metric,
