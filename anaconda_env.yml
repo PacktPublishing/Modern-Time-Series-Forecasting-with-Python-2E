@@ -51,5 +51,6 @@ dependencies:
     - statsforecast==1.7.8
     - neuralforecast==1.7.4
     - datasetsforecast==0.0.8
+    - kaleido==0.2.1
     # - jupyterlab-code-formatter>=1.4.10
     # - aquirdturtle_collapsible_headings>=3.1.0
