@@ -5,8 +5,8 @@ channels:
   - pytorch
 dependencies:
   - python>=3.10
-  - plotly
-  - py-xgboost
+  - plotly<5.4
+  - py-xgboost 
   - scikit-learn>=0.21.2
   - pandas>=2.0
   - catboost
@@ -14,12 +14,7 @@ dependencies:
   - category_encoders
   - ipywidgets[version='>=7.6']
   - jupyterlab[version='>=3']
-  # - black
-  # - isort
-  # - xlrd
-  # - lxml
   - openpyxl
-  # - python-kaleido
   - pyarrow
   - numpy>=1.24
   - scipy>=1.10
@@ -32,13 +27,12 @@ dependencies:
   - holidays
   - seaborn
   - statsmodels==0.14.0 # Currently bug in 1.7.4.  Can update to newest version if bug is fixed.
-  - statsforecast==1.7.8
-  - neuralforecast==1.7.4
   - utilsforecast==0.2.5
   # - pytorch::pytorch
   # - pytorch::torchvision
   # - pytorch::torchaudio
-  - pytorch-lightning>=2.0
+  - 
+
   - pip
   - pip:
     - kaggle>=1.5.2
@@ -49,10 +43,12 @@ dependencies:
     - tsfel
     # - plotly-resampler
     - rich
-    # - kaleido
     - pytorch_tabular # for full features pytorch_tabular[all]
     - omegaconf
     - tensor-sensor[torch]
     - pytorch_optimizer==3.0.0
+    - pytorch-lightning>=2.0
+    - statsforecast==1.7.8
+    - neuralforecast==1.7.4
     # - jupyterlab-code-formatter>=1.4.10
     # - aquirdturtle_collapsible_headings>=3.1.0
