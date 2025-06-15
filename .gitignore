@@ -137,7 +137,8 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 #Exclude Data Folder
-data/
+/data/
+notebooks/Chapter17/data/
 #Exclude imgs folder
 imgs/
 

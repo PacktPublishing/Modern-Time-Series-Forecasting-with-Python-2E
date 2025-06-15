@@ -12,7 +12,10 @@ except ImportError:  # for 1.9
 
 _PATH = Union[str, Path]
 _DEVICE = Union[torch.device, str, int]
-_MAP_LOCATION_TYPE = Optional[Union[_DEVICE, Callable[[_DEVICE], _DEVICE], Dict[_DEVICE, _DEVICE]]]
+_MAP_LOCATION_TYPE = Optional[
+    Union[_DEVICE, Callable[[_DEVICE], _DEVICE], Dict[_DEVICE, _DEVICE]]
+]
+
 
 class LogTime:
     def __init__(self, verbose=True, **humanize_kwargs) -> None:
@@ -35,11 +38,14 @@ class LogTime:
         if self.verbose:
             print(f"Time Elapsed: {self.elapsed_str}")
 
+
 def intersect_list(list1, list2):
     return list(set(list1).intersection(set(list2)))
 
+
 def difference_list(list1, list2):
-    return list(set(list1)- set(list2))
+    return list(set(list1) - set(list2))
+
 
 def union_list(list1, list2):
     return list(set(list1).union(set(list2)))
@@ -68,3 +74,24 @@ def pl_load(
     fs = get_filesystem(path_or_url)
     with fs.open(path_or_url, "rb") as f:
         return torch.load(f, map_location=map_location)
+
+
+def download_m4_data():
+    import os
+    import urllib.request
+
+    # Create the folder if it doesn't exist
+    folder_path = "data/m4"
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    # Downloading M4-Hourly.csv
+    url1 = "https://auto-arima-results.s3.amazonaws.com/M4-Hourly.csv"
+    filename1 = "data/m4/M4-Hourly.csv"
+    urllib.request.urlretrieve(url1, filename1)
+
+    # Downloading M4-Hourly-test.csv
+    url2 = "https://auto-arima-results.s3.amazonaws.com/M4-Hourly-test.csv"
+    filename2 = "data/m4/M4-Hourly-test.csv"
+    urllib.request.urlretrieve(url2, filename2)
+    return filename1, filename2
